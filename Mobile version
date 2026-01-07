@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Arabic-Indic Trainer</title>
+    <title>Arabic Trainer</title>
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --primary: #3f51b5;
-            --accent: #ff9800; --secondary: #424242; --input-bg: #2d2d2d; --danger: #b00020;
+            --accent: #ff9800; --secondary: #424242; --input-bg: #2d2d2d;
         }
         .light-mode {
             --bg: #f4f4f9; --card: #ffffff; --text: #333333; --primary: #007bff;
-            --accent: #f57c00; --secondary: #e0e0e0; --input-bg: #ffffff; --danger: #d32f2f;
+            --accent: #f57c00; --secondary: #e0e0e0; --input-bg: #ffffff;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -49,13 +49,10 @@
         #timer-bar-container { width: 100%; height: 8px; background: #333; margin-bottom: 1rem; border-radius: 4px; overflow: hidden; }
         #timer-bar { width: 100%; height: 100%; background: var(--accent); transition: width 0.1s linear; }
         
-        .score-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
-        .score-table th, .score-table td { padding: 10px 4px; border-bottom: 1px solid #444; text-align: center; }
-        .scroll-area { max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.1); border-radius: 10px; }
-
         #feedback { font-weight: bold; margin-bottom: 1rem; height: 1.2em; font-size: 1.1rem; }
         .correct { color: #4caf50; }
         .incorrect { color: #f44336; }
+        .score-footer { font-size: 0.85rem; color: #888; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -78,20 +75,6 @@
             <button class="time-btn active" id="btn-10s" onclick="setTimeLimit(10)">10s</button>
             <button class="time-btn" onclick="setTimeLimit(20)">20s</button>
         </div>
-
-        <button class="menu-btn" style="background:#444" onclick="showLeaderboard()">View Best Scores</button>
-    </div>
-
-    <div id="leaderboard-view" class="hidden">
-        <h2>Top Scores</h2>
-        <div class="scroll-area">
-            <table class="score-table">
-                <thead><tr><th>Len</th><th>1s</th><th>5s</th><th>10s</th><th>20s</th></tr></thead>
-                <tbody id="score-body"></tbody>
-            </table>
-        </div>
-        <button class="menu-btn" style="margin-top:20px;" onclick="showMenu()">Back</button>
-        <button style="background:var(--danger); color:white; width:100%; padding:12px; border-radius:10px; font-weight:bold;" onclick="clearAllScores()">Reset All Data</button>
     </div>
 
     <div id="app-view" class="hidden">
@@ -110,6 +93,9 @@
             <button class="secondary-btn" onclick="showMenu()">Menu</button>
             <button id="back-btn" class="secondary-btn" onclick="goBack()">Back</button>
             <button id="main-action-btn" class="primary-btn" onclick="handleAction()">Action</button>
+        </div>
+        <div id="quiz-stats" class="score-footer hidden">
+            Streak: <span id="current-streak">0</span> | Best: <span id="best-streak">0</span>
         </div>
     </div>
 </div>
@@ -148,32 +134,7 @@
         clearInterval(timerInterval);
         document.getElementById('main-menu').classList.remove('hidden');
         document.getElementById('app-view').classList.add('hidden');
-        document.getElementById('leaderboard-view').classList.add('hidden');
         currentMode = '';
-    }
-
-    function showLeaderboard() {
-        document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('leaderboard-view').classList.remove('hidden');
-        const tbody = document.getElementById('score-body');
-        tbody.innerHTML = '';
-        const times = [1, 5, 10, 20];
-        for(let i=1; i<=16; i++) {
-            let row = `<tr><td>${i}</td>`;
-            times.forEach(t => {
-                const score = localStorage.getItem(`best_len${i}_time${t}`) || 0;
-                row += `<td>${score}</td>`;
-            });
-            row += `</tr>`;
-            tbody.innerHTML += row;
-        }
-    }
-
-    function clearAllScores() {
-        if(confirm("Wipe all leaderboard data?")) {
-            localStorage.clear();
-            showLeaderboard();
-        }
     }
 
     function startMode(mode) {
@@ -183,10 +144,19 @@
         const isQuiz = mode === 'quiz';
         document.getElementById('practice-controls').classList.toggle('hidden', isQuiz);
         document.getElementById('quiz-ui').classList.toggle('hidden', !isQuiz);
+        document.getElementById('quiz-stats').classList.toggle('hidden', !isQuiz);
         document.getElementById('timer-bar-container').classList.toggle('hidden', !isQuiz);
         document.getElementById('western-display').classList.toggle('hidden', isQuiz);
         document.getElementById('back-btn').classList.toggle('hidden', isQuiz);
+        if(isQuiz) updateStats();
         generate();
+    }
+
+    function updateStats() {
+        const key = `best_len${currentLen}_time${selectedTime}`;
+        const best = localStorage.getItem(key) || 0;
+        document.getElementById('current-streak').innerText = streak;
+        document.getElementById('best-streak').innerText = best;
     }
 
     function startTimer() {
@@ -250,6 +220,7 @@
                     document.getElementById('feedback').innerText = timeLeft <= 0 ? `Time's Up! (${currentNum})` : `Wrong! (${currentNum})`;
                     document.getElementById('feedback').className = "incorrect"; streak = 0;
                 }
+                updateStats();
                 document.getElementById('main-action-btn').innerText = 'Continue';
             } else { generate(); }
         }
