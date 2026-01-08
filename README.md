@@ -1,4 +1,4 @@
-A-INT (Arabic-Indic Number Trainer) Currently Supports all of these number formats to be chosen as your base or your learning format.
+A-INT (Arabic-Indic Number Trainer) Currently Supports all of these number formats to be chosen as your base and your learning format.
 - Western Arabic
 - Arabic-Indic
 - Devanagari
