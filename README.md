@@ -18,3 +18,5 @@ A-INT (Arabic-Indic Number Trainer) Currently Supports all of these number forma
 - Odia
 - Ol Chiki
 - Telugu
+
+The Downloading of this repository requires the install of lfs and running a clone on it, as the exe is over 200MB.
